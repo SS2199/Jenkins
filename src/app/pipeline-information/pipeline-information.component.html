@@ -1,0 +1,9 @@
+<h1>Jenkins Build Details</h1>
+    <button (click)="fetchBuildDetails()">Fetch Build Details</button>
+    <div *ngIf="buildDetails">
+      <h2>Job Name: {{ buildDetails.jobName }}</h2>
+      <h3>Build Number: {{ buildDetails.buildNumber }}</h3>
+      <p>Status: {{ buildDetails.result }}</p>
+      <p>Build URL: {{ buildDetails.url }}</p>
+      <!-- Display other relevant build details as needed -->
+    </div>
