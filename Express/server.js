@@ -5,7 +5,7 @@ const router = require('./router');
 const config = require('./config');
 
 const app = express();
-const port = 3000; // Choose a suitable port for your server
+const port = 4000; // Choose a suitable port for your server
 
 // Middleware to parse JSON request bodies
 app.use(express.json());
