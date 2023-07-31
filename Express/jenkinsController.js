@@ -1,42 +1,44 @@
 const jenkinsService = require('./jenkinsService');
 
-async function createJob(req, res) {
+// Error handling function
+function handleError(res, error, defaultMessage) {
+  const status = error.response?.status || 500;
+  const data = error.response?.data || { message: defaultMessage };
+  res.status(status).json(data);
+}
+
+// Higher-order function for error handling
+function withErrorHandling(handler, defaultMessage) {
+  return async (req, res) => {
+    try {
+      const response = await handler(req);
+      res.json(response);
+    } catch (error) {
+      handleError(res, error, defaultMessage);
+    }
+  };
+}
+
+// Controller functions
+async function createJob(req) {
   const jobName = req.body.jobName;
   const pipelineScript = req.body.pipelineScript;
-
-  try {
-    const response = await jenkinsService.createJob(jobName, pipelineScript);
-    res.json(response);
-  } catch (error) {
-    res.status(error.response?.status || 500).json(error.response?.data || { message: 'Error creating job' });
-  }
+  return await jenkinsService.createJob(jobName, pipelineScript);
 }
 
-async function getBuildDetails(req, res) {
+async function getBuildDetails(req) {
   const jobName = req.params.jobName;
   const buildNumber = req.params.buildNumber;
-
-  try {
-    const response = await jenkinsService.getBuildDetails(jobName, buildNumber);
-    res.json(response);
-  } catch (error) {
-    res.status(error.response?.status || 500).json(error.response?.data || { message: 'Error fetching build details' });
-  }
+  return await jenkinsService.getBuildDetails(jobName, buildNumber);
 }
 
-async function getJobDetails(req, res) {
+async function getJobDetails(req) {
   const jobName = req.params.jobName;
-
-  try {
-    const response = await jenkinsService.getJobDetails(jobName);
-    res.json(response);
-  } catch (error) {
-    res.status(error.response?.status || 500).json(error.response?.data || { message: 'Error fetching job details' });
-  }
+  return await jenkinsService.getJobDetails(jobName);
 }
 
 module.exports = {
-  createJob,
-  getBuildDetails,
-  getJobDetails,
+  createJob: withErrorHandling(createJob, 'Error creating job'),
+  getBuildDetails: withErrorHandling(getBuildDetails, 'Error fetching build details'),
+  getJobDetails: withErrorHandling(getJobDetails, 'Error fetching job details'),
 };

@@ -1,11 +1,16 @@
 const axios = require('axios');
 const config = require('./config');
 
-const authHeader = createAuthHeader(config.jenkinsUsername, config.jenkinsApiToken);
+async function sendJenkinsRequest(method, url, data = null) {
+  const auth = Buffer.from(`${config.jenkinsUsername}:${config.jenkinsApiToken}`).toString('base64');
+  const headers = { Authorization: `Basic ${auth}` };
 
-function createAuthHeader(username, apiToken) {
-  const auth = Buffer.from(`${username}:${apiToken}`).toString('base64');
-  return `Basic ${auth}`;
+  try {
+    const response = await axios({ method, url, data, headers });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { message: 'Error making Jenkins API request' };
+  }
 }
 
 async function createJob(jobName, pipelineScript) {
@@ -18,39 +23,18 @@ async function createJob(jobName, pipelineScript) {
     </flow-definition>
   `;
 
-  try {
-    const response = await axios.post(`${config.jenkinsUrl}/createItem?name=${encodeURIComponent(jobName)}`, jobConfigXML, {
-      headers: { 'Content-Type': 'application/xml', Authorization: authHeader },
-    });
-
-    return response.data;
-  } catch (error) {
-    throw error.response?.data || { message: 'Error creating job' };
-  }
+  const url = `${config.jenkinsUrl}/createItem?name=${encodeURIComponent(jobName)}`;
+  return await sendJenkinsRequest('post', url, jobConfigXML);
 }
 
 async function getBuildDetails(jobName, buildNumber) {
-  try {
-    const response = await axios.get(`${config.jenkinsUrl}/job/${encodeURIComponent(jobName)}/build/${buildNumber}/api/json`, {
-      headers: { Authorization: authHeader },
-    });
-
-    return response.data;
-  } catch (error) {
-    throw error.response?.data || { message: 'Error fetching build details' };
-  }
+  const url = `${config.jenkinsUrl}/job/${encodeURIComponent(jobName)}/build/${buildNumber}/api/json`;
+  return await sendJenkinsRequest('get', url);
 }
 
 async function getJobDetails(jobName) {
-  try {
-    const response = await axios.get(`${config.jenkinsUrl}/job/${encodeURIComponent(jobName)}/api/json`, {
-      headers: { Authorization: authHeader },
-    });
-
-    return response.data;
-  } catch (error) {
-    throw error.response?.data || { message: 'Error fetching job details' };
-  }
+  const url = `${config.jenkinsUrl}/job/${encodeURIComponent(jobName)}/api/json`;
+  return await sendJenkinsRequest('get', url);
 }
 
 module.exports = {

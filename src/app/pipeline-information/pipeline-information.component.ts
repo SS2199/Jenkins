@@ -13,7 +13,7 @@ export class PipelineInformationComponent {
 
   async fetchBuildDetails() {
     const jobName = 'Test'; // Replace with the desired Jenkins job name
-    const buildNumber = 1; // Replace with the build number you want to fetch
+    const buildNumber = 9; // Replace with the build number you want to fetch
 
     this.jenkinsService.getBuildDetails(jobName, buildNumber)
       .then((response) => {
